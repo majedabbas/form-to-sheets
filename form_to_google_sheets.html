@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Form to Google Sheets</title>
+</head>
+<body>
+ <h2>Submit Info</h2>
+  <form id="dataForm">
+    <input type="text" name="name" placeholder="Name" required />
+    <input type="email" name="email" placeholder="Email" required />
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Submitted Data</h2>
+  <button onclick="loadTableData()">Load Table</button>
+  <div id="tableContainer"></div>
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwyo1flg1QBi0WKqxLM-Yvvp2_PUS8N5c-SyYanfwGcW_3KvzGrUQeZ7BP-8xdRSYpY/exec';
+document.getElementById('dataForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData.entries());
+
+      await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      alert('Data submitted!');
+      this.reset();
+    });
+
+    async function loadTableData() {
+      const response = await fetch(scriptURL);
+      const rows = await response.json();
+
+      const table = document.createElement('table');
+      table.border = 1;
+
+      if (rows.length > 0) {
+        const headerRow = document.createElement('tr');
+        Object.keys(rows[0]).forEach(key => {
+          const th = document.createElement('th');
+          th.textContent = key;
+          headerRow.appendChild(th);
+        });
+        table.appendChild(headerRow);
+
+        rows.forEach(row => {
+          const tr = document.createElement('tr');
+          Object.values(row).forEach(cell => {
+            const td = document.createElement('td');
+            td.textContent = cell;
+            tr.appendChild(td);
+          });
+          table.appendChild(tr);
+        });
+      }
+
+      const container = document.getElementById('tableContainer');
+      container.innerHTML = '';
+      container.appendChild(table);
+    }
+
+  </script>
+</body>
+</html>
